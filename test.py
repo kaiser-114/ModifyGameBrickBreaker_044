@@ -451,3 +451,75 @@ def main():
                     SOUND_LOST_LIFE.play()
                     striker_dir = 0
                     state = "ASK_CONTINUE"
+
+                # Cek apakah semua brick yang bisa dihancurkan sudah habis
+                breakable_left = [blk for blk in blocks if blk.health > 0]
+                if not breakable_left:
+                    striker_dir = 0
+                    state = "LEVEL_CLEAR"
+
+            # Render semua objek permainan
+            striker.display()
+            for blk in blocks:
+                blk.display()
+            for sk in skills:
+                sk.display()
+            for b in balls:
+                b.display(is_hard, ball_level)
+
+            # HUD Informasi di Bagian Atas & Bawah
+            hud_top = font_sm.render(
+                f"Arena: {selected_level}/5   |   Score: {score}   |   Lives: {lives}   |   Ball Lv: {ball_level}",
+                True, WHITE
+            )
+            screen.blit(hud_top, (15, 12))
+
+            # Indikator Timer Skill Aktif di Bawah
+            status_list = []
+            if striker.speed_multiplier > 1:
+                status_list.append("Paddle: 2x Speed")
+            if is_hard:
+                sisa_hd = (hard_ball_end_time - current_time) / 1000
+                status_list.append(f"Bola Keras: {sisa_hd:.1f}s")
+            if ball_speed_mult > 1:
+                sisa_4x = (fast_ball_end_time - current_time) / 1000
+                status_list.append(f"Speed 4x: {sisa_4x:.1f}s")
+
+            if status_list:
+                status_txt = font_sm.render("  |  ".join(status_list), True, GOLD)
+                screen.blit(status_txt, (15, HEIGHT - 20))
+
+            # Overlay Teks Instruksi sesuai State
+            if state == "WAIT_START":
+                pygame.draw.rect(screen, (20, 20, 20), (80, HEIGHT // 2 - 25, 440, 50), border_radius=8)
+                pygame.draw.rect(screen, CYAN, (80, HEIGHT // 2 - 25, 440, 50), 2, border_radius=8)
+                draw_text_center("Tekan SPASI untuk Mulai Bermain!", font_md, WHITE, HEIGHT // 2 - 10)
+
+            elif state == "ASK_CONTINUE":
+                pygame.draw.rect(screen, (20, 20, 20), (60, HEIGHT // 2 - 55, 480, 110), border_radius=8)
+                pygame.draw.rect(screen, HEALTH_COLORS[3], (60, HEIGHT // 2 - 55, 480, 110), 2, border_radius=8)
+                if lives > 0:
+                    draw_text_center(f"Bola Jatuh! Sisa Nyawa: {lives}", font_md, GOLD, HEIGHT // 2 - 35)
+                else:
+                    draw_text_center("Nyawa Habis!", font_md, HEALTH_COLORS[3], HEIGHT // 2 - 35)
+                draw_text_center("Apakah mau lanjut?", font_md, WHITE, HEIGHT // 2 - 5)
+                draw_text_center("[Y / SPASI] Lanjut Main     [N / ESC] Ke Menu", font_sm, CYAN, HEIGHT // 2 + 25)
+
+            elif state == "LEVEL_CLEAR":
+                pygame.draw.rect(screen, (20, 20, 20), (70, HEIGHT // 2 - 45, 460, 90), border_radius=8)
+                pygame.draw.rect(screen, HEALTH_COLORS[1], (70, HEIGHT // 2 - 45, 460, 90), 2, border_radius=8)
+                if selected_level < 5:
+                    draw_text_center(f"ARENA {selected_level} SELESAI!", font_md, HEALTH_COLORS[1], HEIGHT // 2 - 25)
+                    draw_text_center("Tekan SPASI untuk lanjut ke Arena berikutnya", font_sm, WHITE, HEIGHT // 2 + 10)
+                else:
+                    draw_text_center("SELAMAT! SEMUA 5 ARENA TAMAT!", font_md, GOLD, HEIGHT // 2 - 25)
+                    draw_text_center("Tekan SPASI untuk kembali ke Main Menu", font_sm, WHITE, HEIGHT // 2 + 10)
+
+        pygame.display.update()
+        clock.tick(FPS)
+
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()
